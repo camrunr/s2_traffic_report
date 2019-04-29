@@ -1,0 +1,175 @@
+<form theme="dark">
+  <label>COS Splunk Traffic</label>
+  <search id="base_cos_upload">
+    <query>
+      index=_internal source=*splunkd.log* host=$env_host$ cachemanager action=upload OR action=download
+  | rex field=cacheId "\|(?&lt;IDX&gt;[^~]+)"
+  | bin _time span=1m
+  | stats sum(eval(kb*1024)) as B by _time host IDX action
+    </query>
+    <earliest>$timepicker.earliest$</earliest>
+    <latest>$timepicker.latest$</latest>
+    <refresh>60</refresh>
+  </search>
+  <fieldset submitButton="false">
+    <input type="dropdown" token="env_host" searchWhenChanged="true">
+      <label>Environment</label>
+      <choice value="dc1indexer*">DC1</choice>
+      <choice value="dc2indexer*">DC2</choice>
+      <default>dc2indexer*</default>
+    </input>
+    <input type="time" token="timepicker">
+      <label></label>
+      <default>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Uploads</title>
+      <input type="dropdown" token="time_group_by" searchWhenChanged="true">
+        <label>Group by</label>
+        <choice value="host">Indexer</choice>
+        <choice value="IDX">Index</choice>
+        <default>IDX</default>
+      </input>
+      <chart>
+        <search base="base_cos_upload">
+          <query>| where action="upload" | timechart limit=15 per_second(B) as Bps by $time_group_by$</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Bps</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">auto</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">1</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.overlayFields">TOTAL</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">250</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Downloads</title>
+      <input type="dropdown" token="dl_time_group_by" searchWhenChanged="true">
+        <label>Group by</label>
+        <choice value="host">Indexer</choice>
+        <choice value="IDX">Index</choice>
+        <default>IDX</default>
+      </input>
+      <chart>
+        <search base="base_cos_upload">
+          <query>| where action="download" | timechart limit=15 per_second(B) as Bps by $dl_time_group_by$</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Bps</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">auto</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">1</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.overlayFields">TOTAL</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">250</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="dropdown" token="table_group_by" searchWhenChanged="true">
+        <label>Group by</label>
+        <choice value="host">Indexer</choice>
+        <choice value="IDX">Index</choice>
+        <default>IDX</default>
+      </input>
+      <table>
+        <search base="base_cos_upload">
+          <query>| where action="upload" | stats sum(eval(B/1024/1024/1024)) as GB by $table_group_by$
+| addcoltotals labelfield=$table_group_by$ label=TOTAL
+| eventstats max(GB) as t
+| eval %=if($table_group_by$="TOTAL","",round(100*GB/t,2))
+| fields - t | sort - GB</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <format type="number" field="GB">
+          <option name="precision">0</option>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <input type="dropdown" token="dl_table_group_by" searchWhenChanged="true">
+        <label>Group by</label>
+        <choice value="host">Indexer</choice>
+        <choice value="IDX">Index</choice>
+        <default>IDX</default>
+      </input>
+      <table>
+        <search base="base_cos_upload">
+          <query>| where action="download" | stats sum(eval(B/1024/1024/1024)) as GB by $dl_table_group_by$
+| addcoltotals labelfield=$dl_table_group_by$ label=TOTAL
+| eventstats max(GB) as t
+| eval %=if($dl_table_group_by$="TOTAL","",round(100*GB/t,2))
+| fields - t | sort - GB</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <format type="number" field="GB">
+          <option name="precision">0</option>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>
