@@ -1,5 +1,5 @@
 <form theme="dark">
-  <label>COS Splunk Traffic</label>
+  <label>SmartStore Traffic</label>
   <search id="base_cos_upload">
     <query>
       index=_internal source=*splunkd.log* host=$env_host$ cachemanager action=upload OR action=download
