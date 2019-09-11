@@ -1,11 +1,12 @@
 <form theme="dark">
-  <label>SmartStore Traffic</label>
+  <label>SmartStore Splunk Traffic</label>
   <search id="base_cos_upload">
     <query>
-      index=_internal source=*splunkd.log* host=$env_host$ cachemanager action=upload OR action=download
+      index=_internal source=*splunkd.log* host=$env_host$ splunk_server=$env_host$ cachemanager status action
+  | eval cacheId=coalesce(cacheId,cache_id)
   | rex field=cacheId "\|(?&lt;IDX&gt;[^~]+)"
   | bin _time span=1m
-  | stats sum(eval(kb*1024)) as B by _time host IDX action
+  | stats count sum(eval(kb*1024)) as B by _time host IDX action status
     </query>
     <earliest>$timepicker.earliest$</earliest>
     <latest>$timepicker.latest$</latest>
@@ -28,7 +29,7 @@
   </fieldset>
   <row>
     <panel>
-      <title>Uploads</title>
+      <title>Uploads thruput</title>
       <input type="dropdown" token="time_group_by" searchWhenChanged="true">
         <label>Group by</label>
         <choice value="host">Indexer</choice>
@@ -77,7 +78,7 @@
       </chart>
     </panel>
     <panel>
-      <title>Downloads</title>
+      <title>Downloads thruput</title>
       <input type="dropdown" token="dl_time_group_by" searchWhenChanged="true">
         <label>Group by</label>
         <choice value="host">Indexer</choice>
@@ -168,6 +169,34 @@
         <option name="refresh.display">progressbar</option>
         <format type="number" field="GB">
           <option name="precision">0</option>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Attempt statuses</title>
+      <input type="dropdown" token="dl_success_group_by" searchWhenChanged="true">
+        <label>Group by</label>
+        <choice value="host">Indexer</choice>
+        <choice value="IDX">Index</choice>
+        <default>IDX</default>
+      </input>
+      <table>
+        <search base="base_cos_upload">
+          <query>| chart sum(count) as Events over $dl_success_group_by$ by status
+  | fields - attempting
+  | addtotals fieldname=total
+  | eval success_perc=coalesce(100*(round(succeeded/total,2)),0)
+  | rename success_perc as "Success %"
+  | fields $dl_success_group_by$ Success* * 
+  | sort "Success %"
+  | fillnull value=0</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <format type="number" field="Success %">
+          <option name="unit">%</option>
         </format>
       </table>
     </panel>
