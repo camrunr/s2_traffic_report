@@ -187,8 +187,7 @@
           <query>| chart sum(count) as Events over $dl_success_group_by$ by status
   | fields - attempting
   | addtotals fieldname=total
-  | eval success_perc=coalesce(100*(round(succeeded/total,2)),0)
-  | rename success_perc as "Success %"
+  | eval "Success %"=coalesce(100*(round(succeeded/total,2)),0)
   | fields $dl_success_group_by$ Success* * 
   | sort "Success %"
   | fillnull value=0</query>
